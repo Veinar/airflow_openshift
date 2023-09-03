@@ -8,8 +8,8 @@ This repository contains example Airflow deployment YAMLs that as whole allows u
 
 ## Requirements
 
-1. Access to Openshift cluster web console / API
-1. You have to be an admin of namespace on which you are deploying Airflow.
+1. Access to Openshift cluster web console / API,
+1. You have to be an admin of namespace on which you are deploying Airflow,
 1. Already deployed PostgreSQL with database for Airflow, with known username and password used to connect.
 
 ## Preparation / Configuration
@@ -24,9 +24,9 @@ Namespace across all YAMLs must be changed. Execute following command passing yo
 find . -type f -name "*.yaml" -exec sed -i 's/\${namespace}/'"your_namespace_name"'/g' {} \;
 ```
 To change the configuration file to suit your needs, please look at files listed below:
-* `./airflow/airflow-config.yaml` - misc environmental variables 
-* `./airflow/airflow-secrets.yaml` - misc environmental variables
-* `./airflow/git-secrets.yaml` - git repository environmental variables
+* `./airflow/airflow-config.yaml` - misc environmental variables, 
+* `./airflow/airflow-secrets.yaml` - misc environmental variables,
+* `./airflow/git-secrets.yaml` - git repository environmental variables,
 * `./airflow/webserver_config.py` - Airflow configuration file in which Auth provider is configured. Configure it to suit your needs using official Airflow documentation. **After configuration execute following command to create secret** from Python file:
 
 ```bash

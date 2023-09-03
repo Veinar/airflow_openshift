@@ -1,0 +1,27 @@
+kind: BuildConfig
+apiVersion: build.openshift.io/v1
+metadata:
+  name: "airflow"
+spec:
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 100m
+    limits:
+      memory: 2Gi
+      cpu: '1'
+  runPolicy: "Serial"
+  successfulBuildsHistoryLimit: 1
+  failedBuildsHistoryLimit: 1
+  triggers: []
+  source:
+    dockerfile: |-
+      FROM apache/airflow:latest
+      RUN pip install --no-cache-dir <pypi packages list with space as separator>
+  strategy:
+    dockerStrategy:
+      buildArgs: []
+  output:
+    to:
+      kind: "DockerImage"
+      name: "nexus.example.com:5000/<project>/airflow:latest"
