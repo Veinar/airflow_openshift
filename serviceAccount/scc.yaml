@@ -1,0 +1,19 @@
+kind: SecurityContextConstraints
+apiVersion: security.openshift.io/v1
+metadata:
+  name: airflow-scc
+priority: 10
+allowPrivilegedContainer: true
+runAsUser:
+  type: MustRunAs
+  uid: 50000
+seLinuxContext:
+  type: RunAsAny
+readOnlyRootFilesystem: false
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+users:
+  - system:serviceaccount:dev-airflow:sa-airflow

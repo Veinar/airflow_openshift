@@ -1,0 +1,12 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: airflow-sa-rolebind
+  namespace: ${namespace}
+subjects:
+  - kind: ServiceAccount
+    name: sa-airflow
+roleRef:
+  kind: Role
+  name: airflow-role
+  apiGroup: rbac.authorization.k8s.io

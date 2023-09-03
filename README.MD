@@ -1,6 +1,7 @@
 # Airflow deployment on Openshift
 
 ![GitHub](https://img.shields.io/github/license/Veinar/airflow_openshift)
+![Static Badge](https://img.shields.io/badge/contributions-welcome-blue)
 
 
 This repository contains example Airflow deployment YAMLs that as whole allows user to deploy working system using only two commands (except creating namespace command) on Openshift. As database underlaying this component we are using Postgres (not scripted in this repo). With sidecar for pulling DAGs from git repository. We base on official Airflow docker image and use LDAP as authentication provider.
@@ -12,6 +13,10 @@ This repository contains example Airflow deployment YAMLs that as whole allows u
 1. Already deployed PostgreSQL with database for Airflow, with known username and password used to connect.
 
 ## Preparation / Configuration
+
+In case you are willing to extend capabilities of base Airflow image by additional python libraries, please see `./build` directory where example BuildConfig is present. Remember to change image in deployments to match one written in BuildConfig in order Airflow to start.
+
+**What needs to be done**:
 
 Namespace across all YAMLs must be changed. Execute following command passing your namespace name in place of `your_namespace_name` inside this repository directory. 
 
@@ -34,10 +39,12 @@ To perform deploy, a tool named Openshift CLI aka `oc` or ability to create YAML
 
 > Creating some objects from `serviceAccount` directory, especially `scc.yaml` will require cluster wide admin privileges.
 
-* Using `oc` command:
+* Using `oc` command (recommended):
 
 ```sh
 oc project <your_namespace_name>
+# Optional buildConfig applying
+# oc apply -f ./build/* 
 oc apply -f ./serviceAccount/*
 oc apply -f ./airflow/*
 ```
