@@ -29,17 +29,13 @@ To change the configuration file to suit your needs, please look at files listed
 * `./airflow/git-secrets.yaml` - git repository environmental variables - *remember to use `base64` on strings before applying.*,
 * `./airflow/ingress.yaml` - in this file specify route `${host}` on which Airflow will be deployed,
 * `./airflow/worker-pod-template.yaml` - this is airflow worker pod specification ready to go, but you might want to change something.
-* `./airflow/webserver_config.py` - Airflow configuration file in which Auth provider is configured. Configure it to suit your needs using official Airflow documentation. **After configuration execute following command to create secret** from Python file:
-
-```bash
-oc create secret generic webserver_config --from-file=./airflow/webserver_config.py --dry-run=client -o yaml > ./airflow/webserver_config.yaml
-```
+* `./airflow/webserver_config.yaml` - Airflow configuration file in which Auth provider is configured. Configure it to suit your needs using official Airflow documentation.
 
 ## Deployment
 
 To perform deploy, a tool named Openshift CLI aka `oc` or ability to create YAMLs from Cluster console is a must as mentioned in Requirements section above.
 
-> Creating some objects from `serviceAccount` directory, especially `scc.yaml` will require cluster wide admin privileges.
+> Creating some objects from `serviceAccount` directory, especially `scc.yaml` will require cluster wide admin privileges. Also create SCC binding with service account.
 
 * Using `oc` command (recommended):
 
@@ -47,8 +43,9 @@ To perform deploy, a tool named Openshift CLI aka `oc` or ability to create YAML
 oc project <your_namespace_name>
 # Optional buildConfig applying
 # oc apply -f ./build/* 
-oc apply -f ./serviceAccount/*
-oc apply -f ./airflow/*
+for file in ./serviceAccount/*.yaml; do oc apply -f "$file"; done
+oc adm policy add-scc-to-user airflow-scc -z sa-airflow
+for file in ./airflow/*.yaml; do oc apply -f "$file"; done
 ```
 
 * Using Openshift web console:

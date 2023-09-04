@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: airflow-webserver
+  namespace: ${namespace}
 spec:
   replicas: 1
   selector:
@@ -33,7 +34,7 @@ spec:
             - secretRef:
                 name: airflow-secrets
         - name: init-dag-from-git
-          image: git
+          image: alpine/git:latest
           resources:
             requests:
               cpu: 50m

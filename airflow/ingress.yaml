@@ -7,13 +7,13 @@ metadata:
     app: airflow
 spec:
   rules:
-    - host: ${hostname}
+    - host: airflow.${namespace}.${host}
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: airflow
+                name: airflow-webserver-service
                 port:
                   number: 8080
