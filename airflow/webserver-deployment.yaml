@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-webserver
+  template:
+    metadata:
+      labels:
+        app: airflow-webserver
+    spec:
+      serviceAccountName: sa-airflow
+      initContainers:
+        - name: init-airflow
+          image: apache/airflow:latest
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          command:
+            - "bash"
+            - "-c"
+            - "airflow db init && airflow db upgrade"
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+            - secretRef:
+                name: airflow-secrets
+        - name: init-dag-from-git
+          image: git
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          command: ["/bin/sh", "-c"]
+          args:
+            - rm -rf /git/dags/* && git clone https://$GIT_REPOSITORY_USERNAME:$GIT_REPOSITORY_PASSWORD@$GIT_REPOSITORY_URL /git/dags
+          envFrom:
+            - secretRef:
+                name: dags-git-repository-secret
+          volumeMounts:
+            - name: airflow-dags
+              mountPath: /git
+          securityContext:
+            runAsUser: 50000
+            runAsGroup: 0
+      containers:
+        - name: webserver
+          image: apache/airflow:latest
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - "airflow"
+            - "webserver"
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+            - secretRef:
+                name: airflow-secrets
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 1000m
+              memory: 4Gi
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+              subPath: dags
+            - name: webserver-config
+              mountPath: /opt/airflow/webserver_config.py
+              subPath: webserver_config.py
+            - name: worker-pod-template
+              mountPath: /opt/airflow/worker-pod-template.yaml
+              subPath: worker-pod-template.yaml
+          securityContext:
+            privileged: false
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+        - name: git-puller-sidecar
+          image: alpine/git:latest
+          resources: 
+            requests:
+              memory: 256Mi
+              cpu: 50m
+            limits:
+              memory: 512Mi
+              cpu: 400m
+          command: ["/bin/sh", "-c"]
+          args:
+            - while true; do git -C /git/dags pull; sleep 60; done
+          envFrom:
+            - secretRef:
+                name: dags-git-repository-secret
+          volumeMounts:
+            - name: airflow-dags
+              mountPath: /git
+          securityContext:
+            runAsUser: 50000
+            runAsGroup: 0
+      volumes:
+        - name: airflow-dags
+          emptyDir: {}
+        - name: worker-pod-template
+          configMap:
+            name: worker-pod-template
+        - name: webserver-config
+          configMap:
+            name: webserver-config

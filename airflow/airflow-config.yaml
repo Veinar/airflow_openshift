@@ -1,0 +1,17 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: airflow-config
+  namespace: ${namespace}
+data:
+  SQLALCHEMY_SILENCE_UBER_WARNING: '1'
+  AIRFLOW__KUBERNETES_EXECUTOR__MULTI_NAMESPACE_MODE: 'False'
+  PYTHONPATH: '"/home/airflow/.local/lib/python3.7/site-packages"'
+  _AIRFLOW_DB_UPGRADE: 'true'
+  DAG_FOLDER: /opt/airflow/dags
+  AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: ${namespace}
+  AIRFLOW_UID: '50000'
+  AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+  AIRFLOW__CORE__DEFAULT_TIMEZONE: Europe/Warsaw
+  AIRFLOW__KUBERNETES_EXECUTOR__POD_TEMPLATE_FILE: /opt/airflow/worker-pod-template.yaml
+  AIRFLOW_GID: '0'

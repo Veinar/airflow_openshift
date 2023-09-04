@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: airflow
+  namespace: ${namespace}
+  labels:
+    app: airflow
+spec:
+  rules:
+    - host: ${hostname}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: airflow
+                port:
+                  number: 8080

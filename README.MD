@@ -25,8 +25,10 @@ find . -type f -name "*.yaml" -exec sed -i 's/\${namespace}/'"your_namespace_nam
 ```
 To change the configuration file to suit your needs, please look at files listed below:
 * `./airflow/airflow-config.yaml` - misc environmental variables, 
-* `./airflow/airflow-secrets.yaml` - misc environmental variables,
-* `./airflow/git-secrets.yaml` - git repository environmental variables,
+* `./airflow/airflow-secrets.yaml` - misc environmental variables - *remember to use `base64` on strings before applying.*,
+* `./airflow/git-secrets.yaml` - git repository environmental variables - *remember to use `base64` on strings before applying.*,
+* `./airflow/ingress.yaml` - in this file specify route `${host}` on which Airflow will be deployed,
+* `./airflow/worker-pod-template.yaml` - this is airflow worker pod specification ready to go, but you might want to change something.
 * `./airflow/webserver_config.py` - Airflow configuration file in which Auth provider is configured. Configure it to suit your needs using official Airflow documentation. **After configuration execute following command to create secret** from Python file:
 
 ```bash

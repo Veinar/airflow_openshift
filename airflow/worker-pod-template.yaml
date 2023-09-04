@@ -1,0 +1,71 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: worker-pod-template
+  namespace: ${namespace}
+data:
+  worker-pod-template.yaml: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: airflow-worker
+    spec:
+      serviceAccountName: sa-airflow
+      initContainers:
+        - name: init-dag-from-git
+          image: alpine/git:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - git clone https://$GIT_REPOSITORY_USERNAME:$GIT_REPOSITORY_PASSWORD@$GIT_REPOSITORY_URL /opt/airflow/dags
+          envFrom:
+            - secretRef:
+                name: dags-git-repository-secret
+          volumeMounts:
+            - name: airflow-dags
+              mountPath: /opt/airflow/dags
+          resources: 
+            requests:
+              memory: 128Mi
+              cpu: 100m
+            limits: 
+              memory: 2Gi
+              cpu: 1000m
+      containers:
+        - env:
+            - name: AIRFLOW__CORE__EXECUTOR
+              value: LocalExecutor
+            - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+              valueFrom:
+                secretKeyRef:
+                  name: airflow-secrets
+                  key: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          image: apache/airflow:latest
+          resources: 
+            requests:
+              memory: 500Mi
+              cpu: 100m
+            limits: 
+              memory: 2Gi
+              cpu: 1000m
+          imagePullPolicy: IfNotPresent
+          name: base
+          volumeMounts:
+            - mountPath: "/opt/airflow/logs"
+              name: airflow-logs
+            - mountPath: /opt/airflow/dags
+              name: airflow-dags
+              readOnly: true
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 50000
+      volumes:
+        - name: airflow-dags
+          readOnly: false
+          mountPropagation: None
+          volumeSecurityContext:
+            runAsUser: 50000
+            runAsGroup: 0
+            fsGroup: 50000
+        - emptyDir: {}
+          name: airflow-logs
